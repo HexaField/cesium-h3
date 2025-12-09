@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest'
-import { latLngToCell, cellToBoundary, cellToLatLng, cellToChildren } from 'h3-js'
+import { cellToBoundary, cellToChildren, cellToLatLng, latLngToCell } from 'h3-js'
+import { describe, expect, it } from 'vitest'
 
 // Simple point-in-polygon for lat/lng arrays (winding number / ray casting)
 function pointInPolygon(point: [number, number], polygon: Array<[number, number]>): boolean {
@@ -8,7 +8,7 @@ function pointInPolygon(point: [number, number], polygon: Array<[number, number]
   for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
     const [yi, xi] = polygon[i]
     const [yj, xj] = polygon[j]
-    const intersect = ((xi > px) !== (xj > px)) && (py < (yj - yi) * (px - xi) / (xj - xi) + yi)
+    const intersect = xi > px !== xj > px && py < ((yj - yi) * (px - xi)) / (xj - xi) + yi
     if (intersect) inside = !inside
   }
   return inside

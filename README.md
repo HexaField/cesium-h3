@@ -15,7 +15,7 @@ The React Compiler is not enabled on this template because of its impact on dev 
 
 If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
 
-```js
+````js
 export default defineConfig([
   globalIgnores(['dist']),
   {
@@ -38,3 +38,4 @@ export default defineConfig([
     - The map component derives hexagons from `h3-js` (using `geoToH3`, `kRing`, and `h3ToGeoBoundary`) and draws them as Cesium entities.
 
     If you want adjustments (different center, resolution, or dynamic generation based on camera), tell me which behavior you prefer and I'll implement it.
+````
