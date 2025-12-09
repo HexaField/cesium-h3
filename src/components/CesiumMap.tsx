@@ -1,13 +1,20 @@
 import * as Cesium from 'cesium'
 import 'cesium/Build/Cesium/Widgets/widgets.css'
 import { gridDisk, latLngToCell } from 'h3-js'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { RenderPlan } from '../lib/h3Helpers'
 import { computeRenderPlan, computeResMetrics, hexToDegreesArray, viewRadiusMeters } from '../lib/h3Helpers'
 
 export default function CesiumMap() {
   const ref = useRef<HTMLDivElement | null>(null)
   const viewerRef = useRef<Cesium.Viewer | null>(null)
+  const [selectedCell, setSelectedCell] = useState<string | null>(null)
+  const selectedCellRef = useRef<string | null>(null)
+
+  // keep a ref in sync for event listeners and RAF loop (avoids re-registering handlers)
+  useEffect(() => {
+    selectedCellRef.current = selectedCell
+  }, [selectedCell])
 
   useEffect(() => {
     if (!ref.current) return
@@ -52,7 +59,6 @@ export default function CesiumMap() {
 
     // hover / selection state
     let hoverCellId: string | null = null
-    let selectedCellId: string | null = null
     let hoverAlpha = 0
     let hoverTargetAlpha = 0
     const hoverSmoothing = 0.28
@@ -149,7 +155,7 @@ export default function CesiumMap() {
           const degrees = hexToDegreesArray(h)
           const positions = Cesium.Cartesian3.fromDegreesArray(degrees)
           const color =
-            selectedCellId === hoverCellId
+              selectedCellRef.current === hoverCellId
               ? Cesium.Color.fromBytes(255, 165, 0).withAlpha(0.45)
               : Cesium.Color.fromBytes(102, 179, 224).withAlpha(Math.max(0, Math.min(0.999, hoverAlpha)))
 
@@ -272,9 +278,10 @@ export default function CesiumMap() {
       // Decide grid center: if a cell is selected, center on that cell; else prefer pointer position, then camera center
       let cLat = centerLat
       let cLng = centerLng
-      if (selectedCellId) {
+      const sel = selectedCellRef.current
+      if (sel) {
         // center on the selected H3 cell
-        const [, ...rest] = selectedCellId.split('-')
+        const [, ...rest] = sel.split('-')
         const h = rest.join('-')
         if (h) {
           const degrees = hexToDegreesArray(h)
@@ -309,7 +316,7 @@ export default function CesiumMap() {
       const plan = computeRenderPlan(metrics, radius, 6)
 
       // pointer-based hover (only if not selected)
-      if (!selectedCellId && lastPointer) {
+      if (!selectedCellRef.current && lastPointer) {
         const pick = viewer.camera.pickEllipsoid(new Cesium.Cartesian2(lastPointer.x, lastPointer.y))
         if (pick) {
           const carto = Cesium.Cartographic.fromCartesian(pick)
@@ -346,8 +353,9 @@ export default function CesiumMap() {
       const y = e.clientY - rect.top
 
       // if already selected, clicking anywhere deselects
-      if (selectedCellId) {
-        selectedCellId = null
+      if (selectedCellRef.current) {
+        selectedCellRef.current = null
+        setSelectedCell(null)
         hoverCellId = null
         hoverTargetAlpha = 0
         // highlight removal handled by drawForPlan fade
@@ -368,8 +376,10 @@ export default function CesiumMap() {
         const pLat = (carto.latitude * 180) / Math.PI
         const pLng = (carto.longitude * 180) / Math.PI
         const h3idx = latLngToCell(pLat, pLng, primary)
-        selectedCellId = `${primary}-${h3idx}`
-        hoverCellId = selectedCellId
+        const selId = `${primary}-${h3idx}`
+        selectedCellRef.current = selId
+        setSelectedCell(selId)
+        hoverCellId = selId
         hoverTargetAlpha = 0.65
       }
     }
@@ -410,5 +420,22 @@ export default function CesiumMap() {
     }
   }, [])
 
-  return <div ref={ref} className="cesium-container fixed inset-0 w-full h-full" />
+  return (
+    <>
+      <div ref={ref} className="cesium-container fixed inset-0 w-full h-full" />
+
+      {/* Left-side sliding modal for selected cell */}
+      <div
+        className={`fixed left-4 top-4 bottom-4 z-50 transform transition-all duration-200 ease-out ${
+          selectedCell ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0'
+        }`}
+        aria-hidden={!selectedCell}
+      >
+        <div className="bg-white border border-gray-300 rounded-md shadow-md p-4 w-64 h-full overflow-y-auto">
+          <div className="text-sm text-gray-500 mb-1">Selected Cell</div>
+          <div className="text-sm font-mono text-gray-900 break-words">{selectedCell ?? ''}</div>
+        </div>
+      </div>
+    </>
+  )
 }
