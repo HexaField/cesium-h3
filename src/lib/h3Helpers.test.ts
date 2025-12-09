@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 // Mock the h3-js module so tests don't rely on actual H3 logic here
 vi.mock('h3-js', () => ({
-  cellToBoundary: (h3Index: string) => {
+  cellToBoundary: () => {
     // Return a simple triangle boundary as [lat, lng] pairs
     return [
       [10, 20],
