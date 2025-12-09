@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ensure full-viewport layout for the Cesium canvas */
+html, body, #root {
+  height: 100%;
+  margin: 0;
+}
+
+/* Preserve some minimal sensible defaults */
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* make Cesium widget and canvas occupy the full container */
+.cesium-container,
+.cesium-container .cesium-viewer,
+.cesium-container .cesium-widget-viewport,
+.cesium-container .cesium-widget {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.cesium-container .cesium-widget-viewport canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
