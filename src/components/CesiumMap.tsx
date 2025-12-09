@@ -148,11 +148,17 @@ export default function CesiumMap() {
         if (h) {
           const degrees = hexToDegreesArray(h)
           const positions = Cesium.Cartesian3.fromDegreesArray(degrees)
-          const color = selectedCellId === hoverCellId
-            ? Cesium.Color.fromBytes(255, 165, 0).withAlpha(0.45)
-            : Cesium.Color.fromBytes(102, 179, 224).withAlpha(Math.max(0, Math.min(0.999, hoverAlpha)))
+          const color =
+            selectedCellId === hoverCellId
+              ? Cesium.Color.fromBytes(255, 165, 0).withAlpha(0.45)
+              : Cesium.Color.fromBytes(102, 179, 224).withAlpha(Math.max(0, Math.min(0.999, hoverAlpha)))
 
-          if (highlightPrimitive && viewer.scene && viewer.scene.primitives && typeof viewer.scene.primitives.remove === 'function') {
+          if (
+            highlightPrimitive &&
+            viewer.scene &&
+            viewer.scene.primitives &&
+            typeof viewer.scene.primitives.remove === 'function'
+          ) {
             viewer.scene.primitives.remove(highlightPrimitive)
             highlightPrimitive = null
           }
@@ -178,7 +184,12 @@ export default function CesiumMap() {
         }
       } else if (highlightPrimitive) {
         if (hoverAlpha < 0.01) {
-          if (highlightPrimitive && viewer.scene && viewer.scene.primitives && typeof viewer.scene.primitives.remove === 'function') {
+          if (
+            highlightPrimitive &&
+            viewer.scene &&
+            viewer.scene.primitives &&
+            typeof viewer.scene.primitives.remove === 'function'
+          ) {
             viewer.scene.primitives.remove(highlightPrimitive)
           }
           highlightPrimitive = null
@@ -199,14 +210,40 @@ export default function CesiumMap() {
     // We'll run a continuous animation loop to update the grid every frame.
     let raf = 0
     let lastPointer: { x: number; y: number; inside: boolean } | null = null
+    let pointerDownPos: { x: number; y: number } | null = null
+    let isDragging = false
 
     function onPointerMoveSimple(e: PointerEvent) {
       if (!viewer.canvas) return
       const rect = viewer.canvas.getBoundingClientRect()
-      lastPointer = { x: e.clientX - rect.left, y: e.clientY - rect.top, inside: true }
+      const x = e.clientX - rect.left
+      const y = e.clientY - rect.top
+      // detect simple dragging: if pointer was down and moved more than threshold
+      if (pointerDownPos) {
+        const dx = x - pointerDownPos.x
+        const dy = y - pointerDownPos.y
+        const distSq = dx * dx + dy * dy
+        const THRESH = 5 // pixels
+        if (distSq > THRESH * THRESH) isDragging = true
+      }
+      lastPointer = { x, y, inside: true }
     }
 
     viewer.canvas.addEventListener('pointermove', onPointerMoveSimple)
+    function onPointerDown(e: PointerEvent) {
+      if (!viewer.canvas) return
+      const rect = viewer.canvas.getBoundingClientRect()
+      pointerDownPos = { x: e.clientX - rect.left, y: e.clientY - rect.top }
+      isDragging = false
+    }
+
+    function onPointerUp() {
+      pointerDownPos = null
+      // keep isDragging value until click; we'll clear it after click handling
+    }
+
+    viewer.canvas.addEventListener('pointerdown', onPointerDown)
+    viewer.canvas.addEventListener('pointerup', onPointerUp)
     // handle pointer leaving the canvas
     function onPointerLeave() {
       lastPointer = null
@@ -298,6 +335,12 @@ export default function CesiumMap() {
     // click to select/deselect a cell
     function onClick(e: MouseEvent) {
       if (!viewer.canvas) return
+      // ignore clicks that are part of a drag
+      if (isDragging) {
+        // reset dragging state and ignore this click
+        isDragging = false
+        return
+      }
       const rect = viewer.canvas.getBoundingClientRect()
       const x = e.clientX - rect.left
       const y = e.clientY - rect.top
@@ -349,9 +392,16 @@ export default function CesiumMap() {
       // stop the RAF loop
       if (raf) cancelAnimationFrame(raf)
       if (viewer.canvas) viewer.canvas.removeEventListener('pointermove', onPointerMoveSimple)
+      if (viewer.canvas) viewer.canvas.removeEventListener('pointerdown', onPointerDown)
+      if (viewer.canvas) viewer.canvas.removeEventListener('pointerup', onPointerUp)
       if (viewer.canvas) viewer.canvas.removeEventListener('click', onClick)
       window.removeEventListener('resize', onWindowResize)
-      if (highlightPrimitive && viewer.scene && viewer.scene.primitives && typeof viewer.scene.primitives.remove === 'function') {
+      if (
+        highlightPrimitive &&
+        viewer.scene &&
+        viewer.scene.primitives &&
+        typeof viewer.scene.primitives.remove === 'function'
+      ) {
         viewer.scene.primitives.remove(highlightPrimitive)
         highlightPrimitive = null
       }
