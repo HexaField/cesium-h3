@@ -16,12 +16,17 @@ export default function LayersMenu({ holonsEnabled, setHolonsEnabled }: Props) {
             </div>
             <div>
               <input
+                id="holons-toggle"
                 type="checkbox"
                 checked={holonsEnabled}
                 onChange={(e) => setHolonsEnabled(e.target.checked)}
-                className="toggle-checkbox"
+                className="sr-only peer"
                 aria-label="Toggle Holons layer"
               />
+
+              <div className="w-12 h-6 bg-gray-200 rounded-full relative transition-colors duration-200 peer-checked:bg-sky-500">
+                <span className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transform transition-transform duration-200 peer-checked:translate-x-6" />
+              </div>
             </div>
           </label>
         </div>
