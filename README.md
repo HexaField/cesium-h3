@@ -1,41 +1,24 @@
-# React + TypeScript + Vite
+# cesium-h3
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A minimal demo that renders H3 hexagons on a Cesium globe using React, TypeScript, Vite, and Tailwind.
 
-Currently, two official plugins are available:
+What it does
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Computes H3 hexagons from geographic coordinates using `h3-js`.
+- Renders those hexagons on a Cesium globe as entities/overlays.
+- Includes example components in `src/components/` (for example `H3Layer.tsx` and `CesiumGlobe.tsx`).
 
-## React Compiler
+Quick start
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```
+npm install
+npm run dev
+# open http://localhost:5173
+```
 
-## Expanding the ESLint configuration
+Build
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-````js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    ## Cesium + H3 MVP
-
-    This workspace contains a minimal CesiumJS + H3 example using React, TypeScript, Vite and Tailwind.
-
-    Quick start:
-
-    ```bash
-    # install deps
-    npm install
-
-    # start dev server
-    npm run dev
-    ```
-
-    Notes:
-    - The project uses `vite-plugin-cesium` to surface Cesium static assets. If your environment doesn't handle it automatically, copy `node_modules/cesium/Build/Cesium` into `public/cesium`.
-    - The map component derives hexagons from `h3-js` (using `geoToH3`, `kRing`, and `h3ToGeoBoundary`) and draws them as Cesium entities.
-
-    If you want adjustments (different center, resolution, or dynamic generation based on camera), tell me which behavior you prefer and I'll implement it.
-````
+```
+npm run build
+npm run preview
+```
