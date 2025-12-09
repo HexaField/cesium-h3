@@ -39,7 +39,7 @@
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.46.4",
     "vite": "^7.2.5",
-    "vite-plugin-cesium": "^1.1.0",
+    "vite-plugin-cesium": "1.2.22",
     "vitest": "4.0.15"
   }
 }
